@@ -1,9 +1,8 @@
-A quick and dirty Emacs module for accessing postgres via libpq.
+A quick and dirty Emacs 25 module for accessing postgres via libpq.
 
 Work-in-progress.  It doesn't expose many libpq features yet, but
 what's there should be crash-safe no matter what you do in the lisp
 world.  If you make it crash, please report.
 
 See [[./test.el]] for implemented functions.
-
 
