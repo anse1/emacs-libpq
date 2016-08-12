@@ -9,5 +9,8 @@
 (pq:getvalue (pq:execParams con "select 'Hello, ' || $1::text" (user-login-name)) 0 0)
 (pq:escapeLiteral con "moo'oo")
 (pq:exec con (concat "set application_name to " (pq:escapeLiteral con (emacs-version))))
+(setq result (pq:exec con "select version()"))
+(setq result (pq:exec con "select * from pg_stat_activity"))
+(pq:getrow result 0)
 (setq con nil)
 (garbage-collect)

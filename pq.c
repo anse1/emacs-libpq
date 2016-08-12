@@ -256,7 +256,9 @@ pq_getvalue_internal(emacs_env *env, PGresult *res, int row, int column)
   switch(PQftype(res, column)) {
   case INT2OID:
   case INT4OID:
+  case OIDOID:
       return env->make_integer(env, atol(result));
+  case INT8OID:
   case FLOAT4OID:
   case FLOAT8OID:
   case NUMERICOID:
@@ -280,22 +282,23 @@ Fpq_getvalue(emacs_env *env, int nargs, emacs_value args[], void *data)
   return pq_getvalue_internal(env, arg0->p.res, row, column);
 }
 
-/* static emacs_value */
-/* Fpq_getrow(emacs_env *env, int nargs, emacs_value args[], void *data) */
-/* { */
-/*   struct pq_pointer *arg0 = env->get_user_ptr(env, args[0]); */
-/*   int row = env->extract_integer(env, args[1]); */
-/*   assert(type_res == arg0->type); */
-/*   int nfields = PQnfields(arg0->p.res); */
-/*   emacs_value *values = malloc(nfields*sizeof(emacs_value)); */
+static emacs_value
+Fpq_getrow(emacs_env *env, int nargs, emacs_value args[], void *data)
+{
+  struct pq_pointer *arg0 = env->get_user_ptr(env, args[0]);
+  int row = env->extract_integer(env, args[1]);
+  assert(type_res == arg0->type);
+  int nfields = PQnfields(arg0->p.res);
+  emacs_value *values = malloc((nfields + 1)*sizeof(emacs_value));
 
-/*   for (int i = 0; i < nfields; i++) { */
-/*     values[i] = pq_getvalue_internal(env, arg0->p.res, row, i); */
-/*   } */
+  for (int i = 0; i < nfields; i++) {
+    values[i] = pq_getvalue_internal(env, arg0->p.res, row, i);
+  }
+  values[nfields] = Qnil;
 
-/*   emacs_value Qvector = env->intern (env, "vector"); */
-/*   return env->funcall (env, Qvector, nfields, values); */
-/* } */
+  emacs_value Qvector = env->intern (env, "vector");
+  return env->funcall (env, Qvector, nfields, values);
+}
 
 static emacs_value
 Fpq_escape (emacs_env *env, int nargs, emacs_value args[], void *data)
@@ -449,14 +452,14 @@ emacs_module_init (struct emacs_runtime *init_ert)
   );
   bind_function("pq:escapeIdentifier", fun11);
 
-/*   emacs_value fun12 = env->make_function (env, */
-/*               2,            /\* min. number of arguments *\/ */
-/*               2,  /\* max. number of arguments *\/ */
-/*               Fpq_getrow,  /\* actual function pointer *\/ */
-/*               "Fetch ROW from RESULT as a vector.",        /\* docstring *\/ */
-/*               PQescapeIdentifier  /\* user pointer of your choice (data param in Fmymod_test) *\/ */
-/*   ); */
-/*   bind_function("pq:getrow", fun12); */
+  emacs_value fun12 = env->make_function (env,
+              2,            /* min. number of arguments */
+              2,  /* max. number of arguments */
+              Fpq_getrow,  /* actual function pointer */
+              "Fetch ROW from RESULT as a vector.",        /* docstring */
+              PQescapeIdentifier  /* user pointer of your choice (data param in Fmymod_test) */
+  );
+  bind_function("pq:getrow", fun12);
 
   Qnil = env->intern (env, "nil");
   Qt = env->intern (env, "t");
