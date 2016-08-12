@@ -92,13 +92,20 @@ Fpq_connectdb (emacs_env *env, int nargs, emacs_value args[], void *data)
 static emacs_value
 pq_getvalue_internal(emacs_env *env, PGresult *res, int row, int column)
 {
+  if (PQgetisnull(res, row, column))
+    return Qnil;
+
   char *result = PQgetvalue(res, row, column);
+  if (!result)
+    return Qnil;
 
   switch(PQftype(res, column)) {
+  case BOOLOID:
+    return ('t' == *result) ? Qt : Qnil;
   case INT2OID:
   case INT4OID:
   case OIDOID:
-      return env->make_integer(env, atol(result));
+    return env->make_integer(env, atol(result));
   case INT8OID:
   case FLOAT4OID:
   case FLOAT8OID:
