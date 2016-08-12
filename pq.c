@@ -156,7 +156,7 @@ Fpq_query (emacs_env *env, int nargs, emacs_value args[], void *data)
     emacs_value args[2] = {tuple, list};
     list = env->funcall (env, Qcons, 2, args);
   }
-
+  PQclear(res);
   return list;
 }
 
