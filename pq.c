@@ -79,6 +79,9 @@ Fpq_connectdb (emacs_env *env, int nargs, emacs_value args[], void *data)
   PGresult *res = PQexec(conn, "set client_encoding to utf8");
   if (!result_ok(env, res))
     return Qnil;
+  res = PQexec(conn, "set application_name to emacs");
+  if (!result_ok(env, res))
+    return Qnil;
 
   if (nargs)
     free(conninfo);
