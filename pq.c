@@ -74,6 +74,12 @@ Fpq_connectdb (emacs_env *env, int nargs, emacs_value args[], void *data)
     return Qnil;
   }
   fprintf(stderr, "PQconnectdb(%s) -> %p\n", conninfo, conn);
+
+  /* The emacs-module interface always expects utf8 strings */
+  PGresult *res = PQexec(conn, "set client_encoding to utf8");
+  if (!result_ok(env, res))
+    return Qnil;
+
   if (nargs)
     free(conninfo);
 
