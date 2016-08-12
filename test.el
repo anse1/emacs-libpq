@@ -14,5 +14,7 @@
 ;; "'mo''oo\"oo'"
 (pq:escapeIdentifier con "moo'oo\"oo")
 ;; "\"moo'oo\"\"oo\""
+(setq con (pq:connectdb))
+(pq:query con "select version()")
 (setq con nil)
 (garbage-collect)

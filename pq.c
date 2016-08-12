@@ -29,6 +29,7 @@ bool result_ok(emacs_env *env, PGresult *res)
 {
   int status = PQresultStatus(res);
   switch (status) {
+  case PGRES_NONFATAL_ERROR:
   case PGRES_TUPLES_OK:
   case PGRES_SINGLE_TUPLE:
   case PGRES_COMMAND_OK:
@@ -59,7 +60,7 @@ static char *my_string_to_c(emacs_env *env, emacs_value string)
 static emacs_value
 Fpq_connectdb (emacs_env *env, int nargs, emacs_value args[], void *data)
 {
-  char *conninfo = my_string_to_c(env, args[0]);
+  char *conninfo = nargs ? my_string_to_c(env, args[0]) : "";
   PGconn *conn = PQconnectdb(conninfo);
 
   char *errmsg = PQerrorMessage(conn);
@@ -67,12 +68,14 @@ Fpq_connectdb (emacs_env *env, int nargs, emacs_value args[], void *data)
     emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
 
     env->non_local_exit_signal(env, Qpq_error, errstring);
-    free(conninfo);
+    if (nargs)
+      free(conninfo);
     PQfinish(conn);
     return Qnil;
   }
   fprintf(stderr, "PQconnectdb(%s) -> %p\n", conninfo, conn);
-  free(conninfo);
+  if (nargs)
+    free(conninfo);
 
   return env->make_user_ptr(env, pq_finalize_pointer, conn);
 }
@@ -204,7 +207,7 @@ emacs_module_init (struct emacs_runtime *init_ert)
   env = ert->get_environment(ert);
 
   emacs_value fun1 = env->make_function (env,
-              1,            /* min. number of arguments */
+              0,            /* min. number of arguments */
               1,            /* max. number of arguments */
               Fpq_connectdb,  /* actual function pointer */
               "Connect to PostgreSQL database described by CONNSTR.",        /* docstring */
