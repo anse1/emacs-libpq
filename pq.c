@@ -6,12 +6,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define MAX_PARAMS 12
+#define MAX_PQ_PARAMS 12
 
 void *plugin_is_GPL_compatible;
-
-static struct emacs_runtime *ert;
-static emacs_env *env;
 
 static emacs_value Qnil;
 static emacs_value Qt;
@@ -188,7 +185,7 @@ Fpq_escape (emacs_env *env, int nargs, emacs_value args[], void *data)
 
 /* Bind NAME to FUN.  */
 static void
-bind_function (const char *name, emacs_value Sfun)
+bind_function (emacs_env *env, const char *name, emacs_value Sfun)
 {
   /* Set the function cell of the symbol named NAME to SFUN using
      the 'fset' function.  */
@@ -206,7 +203,7 @@ bind_function (const char *name, emacs_value Sfun)
 
 /* Provide FEATURE to Emacs.  */
 static void
-provide (const char *feature)
+provide (emacs_env *env, const char *feature)
 {
   /* call 'provide' with FEATURE converted to a symbol */
 
@@ -218,51 +215,33 @@ provide (const char *feature)
 }
 
 int
-emacs_module_init (struct emacs_runtime *init_ert)
+emacs_module_init (struct emacs_runtime *ert)
 {
-  ert = init_ert;
-  env = ert->get_environment(ert);
+  emacs_env *env = ert->get_environment(ert);
 
-  emacs_value fun1 = env->make_function (env,
-              0,            /* min. number of arguments */
-              1,            /* max. number of arguments */
-              Fpq_connectdb,  /* actual function pointer */
-              "Connect to PostgreSQL database described by CONNSTR.",        /* docstring */
-              NULL          /* user pointer of your choice (data param in Fmymod_test) */
-  );
-  bind_function("pq:connectdb", fun1);
+#define DEFUN(lsym, csym, amin, amax, doc, data) \
+  bind_function (env, lsym, \
+		 env->make_function (env, amin, amax, csym, doc, data))
+  DEFUN("pq:connectdb", Fpq_connectdb, 0, 1,
+	"Connect to PostgreSQL database described by CONNSTR.",
+	NULL);
 
-  emacs_value fun7 = env->make_function (env,
-              2,            /* min. number of arguments */
-              2+MAX_PARAMS,  /* max. number of arguments */
-              Fpq_query,  /* actual function pointer */
-              "Execute QUERY on CONNECTION.",        /* docstring */
-              NULL          /* user pointer of your choice (data param in Fmymod_test) */
-  );
-  bind_function("pq:query", fun7);
+  DEFUN("pq:query", Fpq_query, 2, 2+MAX_PQ_PARAMS,
+	"Execute QUERY on CONNECTION with optional PARAMETERS",
+	NULL);
 
-    emacs_value fun10 = env->make_function (env,
-              2,            /* min. number of arguments */
-              2+MAX_PARAMS,  /* max. number of arguments */
-              Fpq_escape,  /* actual function pointer */
-              "Perform literal value quoting on STRING for CONN.",        /* docstring */
-              PQescapeLiteral /* user pointer of your choice (data param in Fmymod_test) */
-  );
-  bind_function("pq:escapeLiteral", fun10);
+  DEFUN("pq:escapeLiteral", Fpq_escape, 2, 2,
+	"Perform literal value quoting on STRING for CONN.",
+	PQescapeLiteral);
 
-  emacs_value fun11 = env->make_function (env,
-              2,            /* min. number of arguments */
-              2+MAX_PARAMS,  /* max. number of arguments */
-              Fpq_escape,  /* actual function pointer */
-              "Perform identifier quoting on STRING for CONN.",        /* docstring */
-              PQescapeIdentifier  /* user pointer of your choice (data param in Fmymod_test) */
-  );
-  bind_function("pq:escapeIdentifier", fun11);
+  DEFUN("pq:escapeIdentifier", Fpq_escape, 2, 2,
+	"Perform identifier value quoting on STRING for CONN.",
+	PQescapeIdentifier);
 
   Qnil = env->intern (env, "nil");
   Qt = env->intern (env, "t");
 
-  provide("pq");
+  provide(env, "pq");
 
   /* loaded successfully */
   return 0;
