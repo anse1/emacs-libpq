@@ -15,7 +15,6 @@ static emacs_env *env;
 
 static emacs_value Qnil;
 static emacs_value Qt;
-static emacs_value Qpq_error;
 
 void pq_finalize_pointer(void *user_ptr)
 {
@@ -40,6 +39,7 @@ bool result_ok(emacs_env *env, PGresult *res)
     {
       char *errmsg = PQresultErrorMessage(res);
       emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
+      emacs_value Qpq_error = env->intern (env, "pq:error");
 
       PQclear(res);
       env->non_local_exit_signal(env, Qpq_error, errstring);
@@ -66,6 +66,7 @@ Fpq_connectdb (emacs_env *env, int nargs, emacs_value args[], void *data)
   char *errmsg = PQerrorMessage(conn);
   if (strlen(errmsg)) {
     emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
+    emacs_value Qpq_error = env->intern (env, "pq:error");
 
     env->non_local_exit_signal(env, Qpq_error, errstring);
     if (nargs)
@@ -260,7 +261,6 @@ emacs_module_init (struct emacs_runtime *init_ert)
 
   Qnil = env->intern (env, "nil");
   Qt = env->intern (env, "t");
-  Qpq_error = env->intern (env, "pq:error");
 
   provide("pq");
 
