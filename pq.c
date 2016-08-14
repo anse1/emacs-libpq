@@ -16,7 +16,6 @@ static emacs_value Qt;
 void pq_finalize_pointer(void *user_ptr)
 {
   PGconn *conn = user_ptr;
-  fprintf(stderr, "PQfinish(%p)\n", conn);
   PQfinish(conn);
 }
 
@@ -71,7 +70,6 @@ Fpq_connectdb (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
     PQfinish(conn);
     return Qnil;
   }
-  fprintf(stderr, "PQconnectdb(%s) -> %p\n", conninfo, conn);
 
   /* The emacs-module interface always expects utf8 strings */
   PGresult *res = PQexec(conn, "set client_encoding to utf8");
