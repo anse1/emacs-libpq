@@ -238,6 +238,8 @@ emacs_module_init (struct emacs_runtime *ert)
 	"Perform identifier value quoting on STRING for CONN.",
 	PQescapeIdentifier);
 
+#undef DEFUN
+
   Qnil = env->intern (env, "nil");
   Qt = env->intern (env, "t");
 
