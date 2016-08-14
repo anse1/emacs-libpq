@@ -160,6 +160,9 @@ Fpq_query (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   if (!result_ok(env, res))
     return Qnil;
 
+  old_notice_rx =
+       PQsetNoticeReceiver(conn, pq_notice_rx, env);
+
   int ntuples = PQntuples(res);
   int nfields = PQnfields(res);
 
@@ -185,6 +188,8 @@ Fpq_query (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
     emacs_value args[2] = {tuple, list};
     list = env->funcall (env, Qcons, 2, args);
   }
+
+  PQsetNoticeReceiver(conn, old_notice_rx, NULL);
   PQclear(res);
   return list;
 }
