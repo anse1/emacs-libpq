@@ -1,4 +1,8 @@
-(load-library "~/src/emacs-module-postgres/pq.so")
+(add-to-list 'load-path
+             (file-name-directory (or #$ (expand-file-name (buffer-file-name)))))
+
+(require 'pq)
+
 (setq con (pq:connectdb "port=5433 dbname=smith"))
 (pq:query con "select version()")
 ;; ("PostgreSQL 9.4.8 on i686-pc-linux-gnu, compiled by gcc (Debian 4.9.2-10) 4.9.2, 32-bit")
