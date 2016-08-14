@@ -13,6 +13,23 @@ int plugin_is_GPL_compatible;
 static emacs_value Qnil;
 static emacs_value Qt;
 
+#define NOTICE_FORMAT "pq: %s"
+
+static void pq_notice_rx (void *arg, const PGresult *res)
+{
+     char *msg = PQresultErrorMessage(res);
+     emacs_env *env = arg;
+     emacs_value Fmessage = env->intern (env, "message");
+     size_t len = strlen(msg);
+     if (!len)
+	  return;
+     emacs_value args [2] = {
+	  env->make_string(env, NOTICE_FORMAT, strlen(NOTICE_FORMAT)),
+	  env->make_string(env, msg, len-1 /* cut trailing newline */)
+     };
+     env->funcall (env, Fmessage, 2, args);
+}
+
 void pq_finalize_pointer(void *user_ptr)
 {
   PGconn *conn = user_ptr;
@@ -126,8 +143,14 @@ Fpq_query (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
     paramValues[i] = my_string_to_c(env, args[2+i]);
 
   char *command = my_string_to_c(env, args[1]);
+
+  PQnoticeReceiver old_notice_rx =
+       PQsetNoticeReceiver(conn, pq_notice_rx, env);
+
   PGresult *res = PQexecParams(conn, command, nParams,
 			       NULL, paramValues, NULL, NULL, 0);
+
+  PQsetNoticeReceiver(conn, old_notice_rx, NULL);
 
   for (int i=0; i<nParams; i++)
     free((void *)paramValues[i]);
