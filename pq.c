@@ -8,7 +8,7 @@
 
 #define MAX_PQ_PARAMS 12
 
-void *plugin_is_GPL_compatible;
+int plugin_is_GPL_compatible;
 
 static emacs_value Qnil;
 static emacs_value Qt;
@@ -55,7 +55,7 @@ static char *my_string_to_c(emacs_env *env, emacs_value string)
 }
 
 static emacs_value
-Fpq_connectdb (emacs_env *env, int nargs, emacs_value args[], void *data)
+Fpq_connectdb (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
 {
   char *conninfo = nargs ? my_string_to_c(env, args[0]) : "";
   PGconn *conn = PQconnectdb(conninfo);
@@ -115,7 +115,7 @@ pq_getvalue_internal(emacs_env *env, PGresult *res, int row, int column)
 }
 
 static emacs_value
-Fpq_query (emacs_env *env, int nargs, emacs_value args[], void *data)
+Fpq_query (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
 {
   if (!env->is_not_nil(env, args[0]))
     return Qnil;
@@ -169,7 +169,7 @@ Fpq_query (emacs_env *env, int nargs, emacs_value args[], void *data)
 }
 
 static emacs_value
-Fpq_escape (emacs_env *env, int nargs, emacs_value args[], void *data)
+Fpq_escape (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
 {
   if (!env->is_not_nil(env, args[0]))
     return Qnil;
