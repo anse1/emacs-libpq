@@ -19,6 +19,10 @@
 (pq:escapeIdentifier con "moo'oo\"oo")
 ;; "\"moo'oo\"\"oo\""
 (pq:query con "select true, false, NULL, version()")
+
+;; provoke a warning
+(pq:query con "drop table if exists nonexisting_table")
+
 (setq con (pq:connectdb))
 (setq con nil)
 (garbage-collect)
