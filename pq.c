@@ -30,14 +30,14 @@ static void pq_notice_rx (void *arg, const PGresult *res)
      env->funcall (env, Fmessage, 2, args);
 }
 
-void pq_finalize_pointer(void *user_ptr)
+static void pq_finalize_pointer(void *user_ptr)
 {
   PGconn *conn = user_ptr;
   PQfinish(conn);
 }
 
 /* Raise error unless a PGresult is ok. */
-bool result_ok(emacs_env *env, PGresult *res)
+static bool result_ok(emacs_env *env, PGresult *res)
 {
   int status = PQresultStatus(res);
   switch (status) {
