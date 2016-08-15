@@ -137,23 +137,30 @@ Fpq_query (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   PGconn *conn = env->get_user_ptr(env, args[0]);
 
   int nParams = nargs - 2;
-  const char *paramValues[nParams];
-
-  for (int i=0; i<nParams; i++)
-    paramValues[i] = my_string_to_c(env, args[2+i]);
 
   char *command = my_string_to_c(env, args[1]);
 
   PQnoticeReceiver old_notice_rx =
        PQsetNoticeReceiver(conn, pq_notice_rx, env);
 
-  PGresult *res = PQexecParams(conn, command, nParams,
-			       NULL, paramValues, NULL, NULL, 0);
+  PGresult *res;
+
+  if (nParams) {
+       const char *paramValues[nParams];
+
+       for (int i=0; i<nParams; i++)
+	    paramValues[i] = my_string_to_c(env, args[2+i]);
+
+       res = PQexecParams(conn, command, nParams,
+				    NULL, paramValues, NULL, NULL, 0);
+
+       for (int i=0; i<nParams; i++)
+	    free((void *)paramValues[i]);
+  } else
+	 res = PQexec(conn, command);
 
   PQsetNoticeReceiver(conn, old_notice_rx, NULL);
 
-  for (int i=0; i<nParams; i++)
-    free((void *)paramValues[i]);
 
   free(command);
 

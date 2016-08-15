@@ -3,7 +3,7 @@
 
 (require 'pq)
 
-(setq con (pq:connectdb "port=5433 dbname=smith"))
+(setq con (pq:connectdb "port=5432 dbname=smith"))
 (pq:query con "select version()")
 ;; ("PostgreSQL 9.4.8 on i686-pc-linux-gnu, compiled by gcc (Debian 4.9.2-10) 4.9.2, 32-bit")
 (pq:query con "select 1 union select 2")
@@ -22,6 +22,9 @@
 
 ;; provoke a warning
 (pq:query con "drop table if exists nonexisting_table")
+
+;; Multiple statements
+(pq:query con "select 1; select 2; select 3;")
 
 (setq con (pq:connectdb))
 (setq con nil)
