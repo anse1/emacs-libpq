@@ -64,6 +64,17 @@ static bool result_ok(emacs_env *env, PGresult *res)
 static char *my_string_to_c(emacs_env *env, emacs_value string)
 {
   ptrdiff_t size;
+  emacs_value teststring = env->make_string(env, "", 0);
+
+  if (!env->eq(env,
+	       env->type_of(env, teststring),
+	       env->type_of(env, string))) {
+       emacs_value Fprin1_to_string =
+	    env->intern(env, "prin1-to-string");
+       string = env->funcall(env, Fprin1_to_string,
+			     1, &string);
+  }
+
   env->copy_string_contents(env, string, 0, &size);
   char *buf = malloc(size);
   env->copy_string_contents(env, string, buf, &size);
