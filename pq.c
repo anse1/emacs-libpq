@@ -195,7 +195,7 @@ Fpq_query (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
     } else if (0 == nfields) {
       tuple = Qnil;
     } else {
-      emacs_value *values = malloc((nfields + 1)*sizeof(emacs_value));
+      emacs_value values[nfields+1];
       for (int i = 0; i < nfields; i++) {
 	values[i] = pq_getvalue_internal(env, res, t, i);
       }
