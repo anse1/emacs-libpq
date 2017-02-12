@@ -1,5 +1,8 @@
+PG_CONFIG = pg_config
+PGINCLUDEDIR := $(shell $(PG_CONFIG) --pkgincludedir)
+
 CC = gcc
-CFLAGS  = -I$(HOME)/ext/emacs/src/ -I /usr/include/postgresql/ -std=gnu99 -ggdb3 -Wall -fPIC
+CFLAGS  = -I$(HOME)/ext/emacs/src/ -I$(PGINCLUDEDIR) -std=gnu99 -ggdb3 -Wall -fPIC
 LDFLAGS = -lpq
 
 ifeq ($(OS),Windows_NT)
