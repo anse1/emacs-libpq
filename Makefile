@@ -1,3 +1,5 @@
+EMACS = emacs
+
 PG_CONFIG = pg_config
 PGINCLUDEDIR := $(shell $(PG_CONFIG) --pkgincludedir)
 
@@ -21,3 +23,6 @@ all: $(TARGET)
 
 clean:
 	$(RM) $(TARGET)
+
+check:
+	$(EMACS) --batch -Q -l ert -l test.el -f ert-run-tests-batch-and-exit
