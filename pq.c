@@ -100,13 +100,17 @@ Fpq_connectdb (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   }
 
   /* The emacs-module interface always expects utf8 strings */
-  PGresult *res = PQexec(conn, "set client_encoding to utf8");
-  if (!result_ok(env, res))
+  PGresult *res =
+    PQexec(conn,
+	   "set client_encoding to utf8;"
+	   "set application_name to emacs;");
+
+  if (!result_ok(env, res)) {
+    if (nargs)
+      free(conninfo);
+    PQfinish(conn);
     return Qnil;
-  PQclear(res);
-  res = PQexec(conn, "set application_name to emacs");
-  if (!result_ok(env, res))
-    return Qnil;
+  }
 
   PQclear(res);
   if (nargs)
