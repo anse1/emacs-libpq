@@ -27,3 +27,6 @@
   (let ((conn (pq:connectdb *conninfo*)))
     (should (equal (pq:escapeLiteral conn "mo'oo\"oo") "'mo''oo\"oo'"))
     (should (equal (pq:escapeIdentifier conn "moo'oo\"oo") "\"moo'oo\"\"oo\""))))
+
+(ert-deftest pq-signal-error-test ()
+  (should-error (pq:connectdb "invalid-conninfo")))

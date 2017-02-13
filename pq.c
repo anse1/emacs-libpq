@@ -17,7 +17,7 @@ static emacs_value Qt;
 
 static void pq_notice_rx (void *arg, const PGresult *res)
 {
-     char *msg = PQresultErrorMessage(res);
+     const char *msg = PQresultErrorMessage(res);
      emacs_env *env = arg;
      emacs_value Fmessage = env->intern (env, "message");
      size_t len = strlen(msg);
@@ -50,9 +50,9 @@ static bool result_ok(emacs_env *env, PGresult *res)
   case PGRES_FATAL_ERROR:
   default:
     {
-      char *errmsg = PQresultErrorMessage(res);
+      const char *errmsg = PQresultErrorMessage(res);
       emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
-      emacs_value Qpq_error = env->intern (env, "pq:error");
+      emacs_value Qpq_error = env->intern (env, "error");
 
       PQclear(res);
       env->non_local_exit_signal(env, Qpq_error, errstring);
@@ -87,10 +87,10 @@ Fpq_connectdb (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   char *conninfo = nargs ? my_string_to_c(env, args[0]) : "";
   PGconn *conn = PQconnectdb(conninfo);
 
-  char *errmsg = PQerrorMessage(conn);
-  if (strlen(errmsg)) {
+  if (PQstatus(conn) != CONNECTION_OK) {
+    const char *errmsg = PQerrorMessage(conn);
     emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
-    emacs_value Qpq_error = env->intern (env, "pq:error");
+    emacs_value Qpq_error = env->intern (env, "error");
 
     env->non_local_exit_signal(env, Qpq_error, errstring);
     if (nargs)
