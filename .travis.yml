@@ -1,0 +1,26 @@
+language: c
+dist: trusty
+sudo: false
+services:
+  - postgresql
+addons:
+  postgresql: 9.5
+  apt:
+    sources:
+      - precise-pgdg-9.5
+    packages:
+      - libpq-dev
+env:
+  - EMACS_VERSION=25.1
+  - EMACS_VERSION=snapshot
+matrix:
+  allow_failures:
+    - env: EMACS_VERSION=snapshot
+before_install:
+  - export PATH="$HOME/bin:$PATH"
+  - curl -fsSOL https://github.com/flycheck/emacs-travis/raw/master/emacs-travis.mk
+  - make -f emacs-travis.mk install_emacs
+  - make -f emacs-travis.mk install_cask
+  - curl -OL https://github.com/emacs-mirror/emacs/raw/emacs-25.1/src/emacs-module.h
+script:
+  - make
