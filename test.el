@@ -28,5 +28,26 @@
     (should (equal (pq:escapeLiteral conn "mo'oo\"oo") "'mo''oo\"oo'"))
     (should (equal (pq:escapeIdentifier conn "moo'oo\"oo") "\"moo'oo\"\"oo\""))))
 
+(ert-deftest pq-garbage-collect-test ()
+  (let ((conn (pq:connectdb *conninfo*)))
+    (garbage-collect)
+    (setq conn (pq:connectdb *conninfo*)
+	  conn (pq:connectdb *conninfo*)
+	  conn (pq:connectdb *conninfo*)
+	  conn (pq:connectdb *conninfo*)
+	  conn (pq:connectdb *conninfo*)
+	  conn (pq:connectdb *conninfo*))
+    (should
+     (equal
+      (pq:query conn
+		"select count(1) > 5 from pg_stat_activity where application_name = 'emacs'")
+      '(t)))
+    (garbage-collect)
+    (should
+     (equal
+      (pq:query conn
+		"select count(1) < 5 from pg_stat_activity where application_name = 'emacs'")
+      '(t)))))
+
 (ert-deftest pq-signal-error-test ()
   (should-error (pq:connectdb "invalid-conninfo")))
