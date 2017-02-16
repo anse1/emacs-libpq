@@ -56,6 +56,7 @@
 
 (ert-deftest pq-notice-receiver-test ()
   (let ((conn (pq:connectdb *conninfo*)))
+    (pq:query conn "set client_min_messages to notice")
     (pq:query conn "drop table if exists ert_nonexisting_table")
     (with-current-buffer "*Messages*"
       (goto-char (point-max))

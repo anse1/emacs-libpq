@@ -6,3 +6,4 @@ world.  If you make it crash, please report.
 
 See [[./test.el]] for implemented functions.
 
+[[https://api.travis-ci.org/anse1/emacs-libpq.svg]]
