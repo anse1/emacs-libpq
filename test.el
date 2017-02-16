@@ -17,9 +17,6 @@
     (should (equal (pq:query conn "select true, false, NULL, 42")
                    '([t nil nil 42])))
 
-    ;; provoke a warning
-    ;; (pq:query con "drop table if exists nonexisting_table")
-
     ;; Multiple statements
     (should (equal (pq:query conn "select 1; select 2; select 3;") '(3)))))
 
@@ -51,3 +48,10 @@
 
 (ert-deftest pq-signal-error-test ()
   (should-error (pq:connectdb "invalid-conninfo")))
+
+(ert-deftest pq-notice-receiver-test ()
+  (let ((conn (pq:connectdb *conninfo*)))
+    (pq:query conn "drop table if exists ert_nonexisting_table")
+    (with-current-buffer "*Messages*"
+      (goto-char (point-max))
+      (re-search-backward "ert_nonexisting_table"))))
