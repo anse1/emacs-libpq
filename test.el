@@ -47,7 +47,12 @@
       '(t)))))
 
 (ert-deftest pq-signal-error-test ()
-  (should-error (pq:connectdb "invalid-conninfo")))
+  (should-error (pq:connectdb "invalid-conninfo"))
+  (let ((conn (pq:connectdb *conninfo*)))
+    (pq:query conn "select 1")
+    (should-error (pq:query "select * from"))
+    (should-error (pq:query conn "select * from"))
+    (should-error (pq:query conn "select $1::text"))))
 
 (ert-deftest pq-notice-receiver-test ()
   (let ((conn (pq:connectdb *conninfo*)))
