@@ -26,7 +26,9 @@
     (should (equal (pq:query conn "select length('(╯°□°)╯︵ ┻━┻')")
                    '(12)))
     (should (equal (pq:query conn "select '(╯°□°)╯' ||$1::text" "︵ ┻━┻")
-                   '("(╯°□°)╯︵ ┻━┻")))))
+                   '("(╯°□°)╯︵ ┻━┻")))
+    (should-error (pq:query conn "select $1::text" "\x80"))
+    (should-error (pq:query conn "select text '\x80'"))))
 
 (ert-deftest pq-escape-test ()
   (let ((conn (pq:connectdb *conninfo*)))
@@ -43,17 +45,17 @@
 	  conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*))
     (should
-     (equal
-      (pq:query conn
-		"select count(1) > 5 from pg_stat_activity where application_name = 'emacs'")
-      '(t)))
-    (sit-for 0.5)
+     (>
+      (car (pq:query conn
+			"select count(1) from pg_stat_activity where application_name = 'emacs'"))
+      6))
+    (sleep-for 0.1)
     (garbage-collect)
     (should
-     (equal
-      (pq:query conn
-		"select count(1) < 5 from pg_stat_activity where application_name = 'emacs'")
-      '(t)))))
+     (<
+      (car (pq:query conn
+			"select count(1) from pg_stat_activity where application_name = 'emacs'"))
+      6))))
 
 (ert-deftest pq-signal-error-test ()
   (should-error (pq:connectdb "invalid-conninfo"))
@@ -61,9 +63,7 @@
     (pq:query conn "select 1")
     (should-error (pq:query "select * from"))
     (should-error (pq:query conn "select * from"))
-    (should-error (pq:query conn "select $1::text"))
-    (should-error (pq:query conn "select $1::text" "\x80"))
-    (should-error (pq:query conn "select text '\x80'"))))
+    (should-error (pq:query conn "select $1::text"))))
 
 (ert-deftest pq-notice-receiver-test ()
   (let ((conn (pq:connectdb *conninfo*)))
