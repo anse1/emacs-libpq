@@ -45,6 +45,7 @@
       (pq:query conn
 		"select count(1) > 5 from pg_stat_activity where application_name = 'emacs'")
       '(t)))
+    (sit-for 0.5)
     (garbage-collect)
     (should
      (equal
