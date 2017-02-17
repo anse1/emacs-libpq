@@ -18,7 +18,13 @@
                    '([t nil nil 42])))
 
     ;; Multiple statements
-    (should (equal (pq:query conn "select 1; select 2; select 3;") '(3)))))
+    (should (equal (pq:query conn "select 1; select 2; select 3;") '(3)))
+
+    ;; Encoding
+    (should (equal (pq:query conn "select length('(╯°□°)╯︵ ┻━┻')")
+                   '(12)))
+    (should (equal (pq:query conn "select '(╯°□°)╯' ||$1::text" "︵ ┻━┻")
+                   '("(╯°□°)╯︵ ┻━┻")))))
 
 (ert-deftest pq-escape-test ()
   (let ((conn (pq:connectdb *conninfo*)))
