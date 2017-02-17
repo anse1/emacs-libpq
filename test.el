@@ -58,7 +58,9 @@
     (pq:query conn "select 1")
     (should-error (pq:query "select * from"))
     (should-error (pq:query conn "select * from"))
-    (should-error (pq:query conn "select $1::text"))))
+    (should-error (pq:query conn "select $1::text"))
+    (should-error (pq:query conn "select $1::text" "\x80"))
+    (should-error (pq:query conn "select text '\x80'"))))
 
 (ert-deftest pq-notice-receiver-test ()
   (let ((conn (pq:connectdb *conninfo*)))
