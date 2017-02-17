@@ -18,9 +18,11 @@
                    '([t nil nil 42])))
 
     ;; Multiple statements
-    (should (equal (pq:query conn "select 1; select 2; select 3;") '(3)))
+    (should (equal (pq:query conn "select 1; select 2; select 3;") '(3)))))
 
-    ;; Encoding
+(ert-deftest pq-encoding-test ()
+  (let ((conn (pq:connectdb *conninfo*)))
+    (skip-unless (equal '("UTF8") (pq:query conn "show server_encoding")))
     (should (equal (pq:query conn "select length('(╯°□°)╯︵ ┻━┻')")
                    '(12)))
     (should (equal (pq:query conn "select '(╯°□°)╯' ||$1::text" "︵ ┻━┻")
