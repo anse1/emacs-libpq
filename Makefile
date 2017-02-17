@@ -24,5 +24,5 @@ all: $(TARGET)
 clean:
 	$(RM) $(TARGET)
 
-check:
+check: $(TARGET)
 	$(EMACS) --batch -Q -l ert -l test.el -f ert-run-tests-batch-and-exit
