@@ -38,24 +38,29 @@
 (ert-deftest pq-garbage-collect-test ()
   (let ((conn (pq:connectdb *conninfo*)))
     (garbage-collect)
+    (sleep-for 0.1)
     (setq conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*)
+	  conn (pq:connectdb *conninfo*)
+	  conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*))
-    (should
-     (>
-      (car (pq:query conn
-			"select count(1) from pg_stat_activity where application_name = 'emacs'"))
-      6))
-    (sleep-for 0.1)
-    (garbage-collect)
-    (should
-     (<
-      (car (pq:query conn
-			"select count(1) from pg_stat_activity where application_name = 'emacs'"))
-      6))))
+    (let ((connection-count
+	   (car
+	    (pq:query
+	     conn
+	     "select count(1) from pg_stat_activity where application_name = 'emacs'"))))
+      (garbage-collect)
+      (sleep-for 0.1)
+      (should
+       (<
+	(car
+	 (pq:query
+	  conn
+	  "select count(1) from pg_stat_activity where application_name = 'emacs'"))
+	(- connection-count 6))))))
 
 (ert-deftest pq-signal-error-test ()
   (should-error (pq:connectdb "invalid-conninfo"))
