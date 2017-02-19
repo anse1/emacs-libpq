@@ -1,9 +1,18 @@
 An Emacs 25 module for accessing postgres via libpq.
 
-Work-in-progress.  It doesn't expose many libpq features yet, but
-what's there should be crash-safe no matter what you do in the lisp
-world.  If you make it crash, please report.
+It doesn't expose many libpq features yet, but what's there should be
+crash-safe no matter what you do in the lisp world.  I've been using
+it half a year now for reading mail through my Gnus backend [[https://github.com/anse1/nnpg][nnpg]]
+without incidents.
 
-See [[./test.el]] for implemented functions.
+See [[./test.el]] for implemented functions and examples how to use it.
+
+If you make it crash, please report.
+
+Note that =pq= silently converts bigints and numerics your queries
+return to lisp floats because they don't fit into a lisp integer.
+This looses precision on big values.  If you need the full precision,
+cast them to =text= and use, e.g., =calc-eval= to do arbitrary
+precision things with them.
 
 [[https://api.travis-ci.org/anse1/emacs-libpq.svg]]
