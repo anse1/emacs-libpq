@@ -233,6 +233,27 @@ Fpq_escape (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   return result;
 }
 
+static emacs_value
+Fpq_reset (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
+{
+  if (!env->is_not_nil(env, args[0]))
+    return Qnil;
+  PGconn *conn = env->get_user_ptr(env, args[0]);
+
+  PQreset(conn);
+
+  if (PQstatus(conn) != CONNECTION_OK) {
+    const char *errmsg = PQerrorMessage(conn);
+    emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
+    emacs_value Qpq_error = env->intern (env, "error");
+
+    env->non_local_exit_signal(env, Qpq_error, errstring);
+    return Qnil;
+  }
+
+  return Qt;
+}
+
 /* Bind NAME to FUN.  */
 static void
 bind_function (emacs_env *env, const char *name, emacs_value Sfun)
@@ -287,6 +308,10 @@ emacs_module_init (struct emacs_runtime *ert)
   DEFUN("pq:escapeIdentifier", Fpq_escape, 2, 2,
 	"Perform identifier value quoting on STRING for CONN.",
 	PQescapeIdentifier);
+
+  DEFUN("pq:reset", Fpq_reset, 1, 1,
+	"Resets the communication channel to the server behind CONN.",
+	NULL);
 
 #undef DEFUN
 

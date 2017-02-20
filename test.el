@@ -38,8 +38,9 @@
 (ert-deftest pq-garbage-collect-test ()
   (let ((conn (pq:connectdb *conninfo*)))
     (garbage-collect)
-    (sleep-for 0.1)
+    (sleep-for 0.2)
     (setq conn (pq:connectdb *conninfo*)
+	  conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*)
 	  conn (pq:connectdb *conninfo*)
@@ -53,7 +54,7 @@
 	     conn
 	     "select count(1) from pg_stat_activity where application_name = 'emacs'"))))
       (garbage-collect)
-      (sleep-for 0.1)
+      (sleep-for 0.2)
       (should
        (<
 	(car
@@ -69,6 +70,15 @@
     (should-error (pq:query "select * from"))
     (should-error (pq:query conn "select * from"))
     (should-error (pq:query conn "select $1::text"))))
+
+(ert-deftest pq-reset-connection-test ()
+  (let ((testconn (pq:connectdb *conninfo*))
+	(ctlconn (pq:connectdb *conninfo*)))
+    (let ((victim (car (pq:query testconn "select pg_backend_pid()"))))
+      (pq:query ctlconn "select pg_terminate_backend($1)" victim))
+    (should-error (pq:query testconn "select 1"))
+    (pq:reset testconn)
+    (pq:query testconn "select 1")))
 
 (ert-deftest pq-notice-receiver-test ()
   (let ((conn (pq:connectdb *conninfo*)))
