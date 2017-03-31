@@ -305,7 +305,7 @@ emacs_module_init (struct emacs_runtime *ert)
 	NULL);
 
   DEFUN("pq:query", Fpq_query, 2, 2+MAX_PQ_PARAMS,
-	"Execute QUERY on CONNECTION with optional PARAMETERS",
+	"Execute QUERY on CONNECTION with optional PARAMETERS.",
 	NULL);
 
   DEFUN("pq:escapeLiteral", Fpq_escape, 2, 2,
