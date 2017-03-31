@@ -61,6 +61,19 @@ static bool result_ok(emacs_env *env, PGresult *res)
   }
 }
 
+/* Raise error unless a PGConn is ok. */
+static bool connection_ok(emacs_env *env, PGconn *conn)
+{
+  if (PQstatus(conn) != CONNECTION_OK) {
+    const char *errmsg = PQerrorMessage(conn);
+    emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
+    emacs_value Qpq_error = env->intern (env, "error");
+    env->non_local_exit_signal(env, Qpq_error, errstring);
+    return false;
+  }
+  return true;
+}
+
 static char *my_string_to_c(emacs_env *env, emacs_value string)
 {
   ptrdiff_t size;
@@ -87,16 +100,11 @@ Fpq_connectdb (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   char *conninfo = nargs ? my_string_to_c(env, args[0]) : "";
   PGconn *conn = PQconnectdb(conninfo);
 
-  if (PQstatus(conn) != CONNECTION_OK) {
-    const char *errmsg = PQerrorMessage(conn);
-    emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
-    emacs_value Qpq_error = env->intern (env, "error");
-
-    env->non_local_exit_signal(env, Qpq_error, errstring);
-    if (nargs)
-      free(conninfo);
-    PQfinish(conn);
-    return Qnil;
+  if (!connection_ok(env, conn)) {
+       if (nargs)
+	    free(conninfo);
+       PQfinish(conn);
+       return Qnil;
   }
 
   /* The emacs-module interface always expects utf8 strings */
@@ -152,6 +160,10 @@ Fpq_query (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   if (!env->is_not_nil(env, args[0]))
     return Qnil;
   PGconn *conn = env->get_user_ptr(env, args[0]);
+
+  if (!connection_ok(env, conn)) {
+       return Qnil;
+  }
 
   int nParams = nargs - 2;
 
@@ -242,12 +254,7 @@ Fpq_reset (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
 
   PQreset(conn);
 
-  if (PQstatus(conn) != CONNECTION_OK) {
-    const char *errmsg = PQerrorMessage(conn);
-    emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
-    emacs_value Qpq_error = env->intern (env, "error");
-
-    env->non_local_exit_signal(env, Qpq_error, errstring);
+  if (!connection_ok(env, conn)) {
     return Qnil;
   }
 
