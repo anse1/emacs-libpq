@@ -10,8 +10,8 @@
 
 int plugin_is_GPL_compatible;
 
-static emacs_value Qnil;
-static emacs_value Qt;
+#define Qnil env->intern(env, "nil")
+#define Qt env->intern(env, "t")
 
 #define NOTICE_FORMAT "pq: %s"
 
@@ -321,9 +321,6 @@ emacs_module_init (struct emacs_runtime *ert)
 	NULL);
 
 #undef DEFUN
-
-  Qnil = env->intern (env, "nil");
-  Qt = env->intern (env, "t");
 
   provide(env, "pq");
 
