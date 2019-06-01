@@ -32,6 +32,10 @@
 
 (ert-deftest pq-escape-test ()
   (let ((conn (pq:connectdb *conninfo*)))
+    (should-error (pq:escapeLiteral "d"))
+    (should-error (pq:escapeIdentifier "d"))
+    (should-error (pq:escapeLiteral "'" "d"))
+    (should-error (pq:escapeIdentifier "'" "d"))
     (should (equal (pq:escapeLiteral conn "mo'oo\"oo") "'mo''oo\"oo'"))
     (should (equal (pq:escapeIdentifier conn "moo'oo\"oo") "\"moo'oo\"\"oo\""))))
 
