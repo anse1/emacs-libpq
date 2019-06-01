@@ -161,6 +161,9 @@ Fpq_query (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
     return Qnil;
   PGconn *conn = env->get_user_ptr(env, args[0]);
 
+  if (env->non_local_exit_check (env) != emacs_funcall_exit_return)
+       return NULL;
+
   if (!connection_ok(env, conn)) {
        return Qnil;
   }
@@ -237,6 +240,9 @@ Fpq_escape (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
     return Qnil;
   PGconn *conn = env->get_user_ptr(env, args[0]);
 
+  if (env->non_local_exit_check (env) != emacs_funcall_exit_return)
+    return NULL;
+
   char *value = my_string_to_c(env, args[1]);
   char *(*escaper)(PGconn *, const char *, size_t) = data;
   char *quoted = escaper(conn, value, strlen(value));
@@ -251,6 +257,9 @@ Fpq_reset (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   if (!env->is_not_nil(env, args[0]))
     return Qnil;
   PGconn *conn = env->get_user_ptr(env, args[0]);
+
+  if (env->non_local_exit_check (env) != emacs_funcall_exit_return)
+    return NULL;
 
   PQreset(conn);
 
