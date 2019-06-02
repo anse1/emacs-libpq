@@ -310,25 +310,81 @@ emacs_module_init (struct emacs_runtime *ert)
   bind_function (env, lsym, \
 		 env->make_function (env, amin, amax, csym, doc, data))
   DEFUN("pq:connectdb", Fpq_connectdb, 0, 1,
-	"Connect to PostgreSQL database described by CONNSTR.",
+	"Connect to a PostgreSQL database described by CONNINFO.\n"
+	"\n"
+	"CONNINFO is a Connection String as defined in the PostgreSQL manual.\n"
+	"E.g., \"host=localhost port=5432 dbname=mydb connect_timeout=10\"\n"
+	"\n"
+	"Return a user-ptr representing the libpq connection.\n"
+	"Error if connection cannot established.\n"
+	"\n\(fn CONNINFO)",
 	NULL);
 
+#define stringify(s) #s
+
   DEFUN("pq:query", Fpq_query, 2, 2+MAX_PQ_PARAMS,
-	"Execute QUERY on CONNECTION with optional PARAMETERS.",
+	"Execute COMMAND on CONN with optional PARAMETERS.\n"
+	"\n"
+	"Run an SQL command on a connection obtained by `pq:connectdb'.\n"
+	"If PARAMETERS are used, you can reference them in COMMAND using\n"
+	"$1, $2, ..., $12.\n"
+	"\n"
+	"Return the list of rows returned by the last statement in COMMAND.\n"
+	"Rows are returned as atomic values if the statement yields a single\n"
+	"column, or a vector of values if it yields more than one column.\n"
+	"\n"
+	"SQL values are turned into Lisp strings except for the following:\n"
+	"\n"
+	"    NULL: always returned as nil\n"
+	"    true/false: t/nil\n"
+	"    integer: integer or float, depending on size\n"
+	"    float, numeric: float\n"
+	"\n"
+	"While these conversions are convenient, they may loose precision.\n"
+	"If you need the full precision of big integer values or need to be\n"
+	"able to discern between NULL and false, simply cast these to text\n"
+	"in your query.\n"
+	"\n"
+	"Error on SQL errors.  Diagnostic information such as warnings is\n"
+	"emitted using `message'.\n"
+	"\n\(fn CONN COMMAND &rest PARAMETERS)"
+	,
 	NULL);
 
   DEFUN("pq:escapeLiteral", Fpq_escape, 2, 2,
-	"Perform literal value quoting on STRING for CONN.",
+	"Perform literal value quoting on STRING for CONN.\n"
+	"\n"
+	"Return a string for use within an SQL command.  This is useful\n"
+	"when inserting data values as literal constants in SQL commands.\n"
+	"Certain characters (such as quotes and backslashes) must be\n"
+	"escaped to prevent them from being interpreted specially by the\n"
+	"SQL parser.\n"
+	"\n"
+	"Note that it is not necessary nor correct to do escaping when a\n"
+	"data value is passed as a separate parameter in `pq:query'.\n"
+	"\n\(fn CONN STRING)",
 	PQescapeLiteral);
 
   DEFUN("pq:escapeIdentifier", Fpq_escape, 2, 2,
-	"Perform identifier value quoting on STRING for CONN.",
+	"Perform identifier value quoting on STRING for CONN.\n"
+	"\n"
+	"Return a string for use as an SQL identifier, such as a table,\n"
+	"column, or function name.  This is useful when a user-supplied\n"
+	"identifier might contain special characters that would otherwise\n"
+	"not be interpreted as part of the identifier by the SQL parser,\n"
+	"or when the identifier might contain upper case characters whose\n"
+	"case should be preserved.\n"
+	"\n\(fn CONN STRING)",
 	PQescapeIdentifier);
 
   DEFUN("pq:reset", Fpq_reset, 1, 1,
-	"Resets the communication channel to the server behind CONN.",
+	"Resets the communication channel to the server behind CONN.\n"
+	"\n"
+	"Return t if connection is ok again.\n"
+	"\n\(fn CONN)",
 	NULL);
 
+#undef stringify
 #undef DEFUN
 
   provide(env, "pq");
