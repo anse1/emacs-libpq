@@ -320,8 +320,6 @@ emacs_module_init (struct emacs_runtime *ert)
 	"\n\(fn CONNINFO)",
 	NULL);
 
-#define stringify(s) #s
-
   DEFUN("pq:query", Fpq_query, 2, 2+MAX_PQ_PARAMS,
 	"Execute COMMAND on CONN with optional PARAMETERS.\n"
 	"\n"
@@ -384,7 +382,6 @@ emacs_module_init (struct emacs_runtime *ert)
 	"\n\(fn CONN)",
 	NULL);
 
-#undef stringify
 #undef DEFUN
 
   provide(env, "pq");
