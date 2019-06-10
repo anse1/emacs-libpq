@@ -53,9 +53,10 @@ static bool result_ok(emacs_env *env, PGresult *res)
       const char *errmsg = PQresultErrorMessage(res);
       emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
       emacs_value Qpq_error = env->intern (env, "error");
+      emacs_value errdata = env->funcall(env, env->intern(env, "list"), 1, &errstring);
 
       PQclear(res);
-      env->non_local_exit_signal(env, Qpq_error, errstring);
+      env->non_local_exit_signal(env, Qpq_error, errdata);
     }
     return false;
   }
@@ -68,7 +69,8 @@ static bool connection_ok(emacs_env *env, PGconn *conn)
     const char *errmsg = PQerrorMessage(conn);
     emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
     emacs_value Qpq_error = env->intern (env, "error");
-    env->non_local_exit_signal(env, Qpq_error, errstring);
+    emacs_value errdata = env->funcall (env, env->intern(env, "list"), 1, &errstring);
+    env->non_local_exit_signal(env, Qpq_error, errdata);
     return false;
   }
   return true;
