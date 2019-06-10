@@ -73,7 +73,18 @@
     (pq:query conn "select 1")
     (should-error (pq:query "select * from"))
     (should-error (pq:query conn "select * from"))
-    (should-error (pq:query conn "select $1::text"))))
+    (should-error (pq:query conn "select $1::text"))
+    (should
+     (equal
+      'ok
+      (condition-case err
+	  (pq:query conn "moo")
+	(pq:error
+	 (if (string= "42601" (nth 2 err))
+	     ;; syntax errors are ok
+	     'ok
+	   (signal (car err) (cdr err)))))))
+))
 
 (ert-deftest pq-reset-connection-test ()
   (let ((testconn (pq:connectdb *conninfo*))

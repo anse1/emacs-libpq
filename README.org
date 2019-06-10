@@ -29,7 +29,20 @@ Basic usage:
 :  ["font-lock-major-mode" 24]
 :  ["font-lock-mode-major-mode" 24])
 
-See the testsuite [[./test.el]] for all implemented features.
+
+=pq= raises SQL errors as error signal =pq:error=.  This provides the
+[[https://www.postgresql.org/docs/current/errcodes-appendix.html][SQLSTATE]] error code in an additional string in the error data list.
+For example, you can reliably catch unique violations like this:
+
+: (condition-case err (pq:query *pq* "insert into t values (666)")
+:   (pq:error
+:    (if (string= "23505" (nth 2 err))
+:        (progn
+: 	 (message "Caught a unqiue violation"))
+:      ;; re-throw anything else
+:      (signal (car err) (cdr err)))))
+
+See the testsuite [[./test.el]] for more implemented features.
 
 Note that =pq= silently converts bigints and numerics your queries
 return to lisp floats because they don't fit into a lisp integer.

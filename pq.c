@@ -51,12 +51,18 @@ static bool result_ok(emacs_env *env, PGresult *res)
   default:
     {
       const char *errmsg = PQresultErrorMessage(res);
-      emacs_value errstring = env->make_string(env, errmsg, strlen(errmsg));
-      emacs_value Qpq_error = env->intern (env, "error");
-      emacs_value errdata = env->funcall(env, env->intern(env, "list"), 1, &errstring);
+      const char *sqlstate = PQresultErrorField(res, PG_DIAG_SQLSTATE);
+      emacs_value Qpq_error = env->intern (env, "pq:error");
+      emacs_value errmsg_string =
+	   env->make_string(env, errmsg, strlen(errmsg));
+      emacs_value sqlstate_string =
+	   env->make_string(env, sqlstate, strlen(sqlstate));
+      emacs_value errdata[] = {errmsg_string, sqlstate_string};
+      emacs_value errdata_list =
+	   env->funcall(env, env->intern(env, "list"), 2, errdata);
 
       PQclear(res);
-      env->non_local_exit_signal(env, Qpq_error, errdata);
+      env->non_local_exit_signal(env, Qpq_error, errdata_list);
     }
     return false;
   }
@@ -385,6 +391,18 @@ emacs_module_init (struct emacs_runtime *ert)
 	NULL);
 
 #undef DEFUN
+
+  /* Define custom error signal.  The error data is a list with two
+   * strings.  The first string is the human-readable message, the
+   * second is the SQLSTATE error code. */
+  {
+       emacs_value Fdefine_error = env->intern (env, "define-error");
+       emacs_value Qpq_error = env->intern (env, "pq:error");
+       emacs_value errmsg_string =
+	    env->make_string(env, "SQL error", strlen("SQL error"));
+       emacs_value args[] = {Qpq_error, errmsg_string};
+       env->funcall(env, Fdefine_error, 2, args);
+  }
 
   provide(env, "pq");
 
