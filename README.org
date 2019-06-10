@@ -1,13 +1,35 @@
-An Emacs 25 module for accessing postgres via libpq.
+An Emacs 25 module for accessing PostgreSQL via the libpq client library.
+
+Using libpq for client connections has various advantages over the
+wire-protocol speaking pure elisp implementations.  For example, it
+has better performance and supports all features of the protocol like
+full TLS support and new authentication methods like scram-sha-256.
 
 It doesn't expose many libpq features yet, but what's there should be
 crash-safe no matter what you do in the lisp world.  I've been using
-it half a year now for reading mail through my Gnus backend [[https://github.com/anse1/nnpg][nnpg]]
-without incidents.
+it for two years now for reading mail through my custom Gnus backend
+without incidents.  If you make it crash, please report.
 
-See [[./test.el]] for implemented functions and examples how to use it.
+Basic usage:
+: ELISP> (setq *pq* (pq:connectdb "dbname=andreas"))
+: #<user-ptr ptr=0x55b466c02780 finalizer=0x7f7d50112236>
+: ELISP> (pq:query *pq* "select version()")
+: ("PostgreSQL 9.6.7 on x86_64-pc-linux-gnu, compiled by gcc (Debian 6.3.0-18) 6.3.0 20170516, 64-bit")
+: ELISP> (pq:query *pq* "create table local_variables(name text, value text)")
+: nil
+: ELISP> (dolist (el (buffer-local-variables))
+: 	 (pq:query *pq* "insert into local_variables values ($1, $2)"
+: 		   (car el) (cdr el)))
+: nil
+: ELISP> (pq:query *pq* "select name, length(value) from local_variables where value ~ 'mode'")
+: (["major-mode" 24]
+:  ["change-major-mode-hook" 86]
+:  ["hi-lock-mode-major-mode" 24]
+:  ["eldoc-mode-major-mode" 24]
+:  ["font-lock-major-mode" 24]
+:  ["font-lock-mode-major-mode" 24])
 
-If you make it crash, please report.
+See the testsuite [[./test.el]] for all implemented features.
 
 Note that =pq= silently converts bigints and numerics your queries
 return to lisp floats because they don't fit into a lisp integer.
