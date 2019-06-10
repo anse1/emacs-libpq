@@ -52,6 +52,10 @@ static bool result_ok(emacs_env *env, PGresult *res)
     {
       const char *errmsg = PQresultErrorMessage(res);
       const char *sqlstate = PQresultErrorField(res, PG_DIAG_SQLSTATE);
+
+      if (!sqlstate)
+	   sqlstate = "08006"; /* connection_failure */
+
       emacs_value Qpq_error = env->intern (env, "pq:error");
       emacs_value errmsg_string =
 	   env->make_string(env, errmsg, strlen(errmsg));
