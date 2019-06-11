@@ -38,7 +38,7 @@ For example, you can reliably catch unique violations like this:
 :   (pq:error
 :    (if (string= "23505" (nth 2 err))
 :        (progn
-: 	 (message "Caught a unqiue violation"))
+: 	 (message "Caught a unique violation"))
 :      ;; re-throw anything else
 :      (signal (car err) (cdr err)))))
 
