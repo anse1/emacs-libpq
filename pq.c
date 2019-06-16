@@ -282,6 +282,43 @@ Fpq_reset (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
   return Qt;
 }
 
+static emacs_value
+Fpq_notifies (emacs_env *env, ptrdiff_t nargs, emacs_value args[], void *data)
+{
+  PGconn *conn = env->get_user_ptr(env, args[0]);
+
+  if (env->non_local_exit_check (env) != emacs_funcall_exit_return)
+    return NULL;
+
+  if (!connection_ok(env, conn)) {
+    return NULL;
+  }
+
+  PQconsumeInput(conn);
+
+  emacs_value Qvector = env->intern (env, "vector");
+  emacs_value Qcons = env->intern (env, "cons");
+  emacs_value result = Qnil;
+
+  PGnotify *notify;
+  while ((notify = PQnotifies(conn)) != NULL)
+  {
+       emacs_value vector_args[3];
+       vector_args[0] = env->make_string(env, notify->relname, strlen(notify->relname));
+       vector_args[1] = env->make_integer(env, notify->be_pid);
+       vector_args[2] = env->make_string(env, notify->extra, strlen(notify->extra));
+
+       PQfreemem(notify);
+
+       emacs_value cons_args[2];
+       cons_args[0] = env->funcall (env, Qvector, 3, vector_args);
+       cons_args[1] = result;
+       result = env->funcall (env, Qcons, 2, cons_args);
+  }
+
+  return result;
+}
+
 /* Bind NAME to FUN.  */
 static void
 bind_function (emacs_env *env, const char *name, emacs_value Sfun)
@@ -391,6 +428,13 @@ emacs_module_init (struct emacs_runtime *ert)
 	"Resets the communication channel to the server behind CONN.\n"
 	"\n"
 	"Return t if connection is ok again.\n"
+	"\n\(fn CONN)",
+	NULL);
+
+  DEFUN("pq:notifies", Fpq_notifies, 1, 1,
+	"Get asynchronous notifications recieved on CONN.\n"
+	"\n"
+	"Returns list of vectors [channel-string pid payload-string]\n"
 	"\n\(fn CONN)",
 	NULL);
 

@@ -102,3 +102,25 @@
     (with-current-buffer "*Messages*"
       (goto-char (point-max))
       (re-search-backward "ert_nonexisting_table"))))
+
+(ert-deftest pq-async-notify-test ()
+  (let* ((conn (pq:connectdb *conninfo*))
+	 (mypid (car (pq:query conn "select pg_backend_pid()"))))
+    (pq:notifies conn)
+    (pq:query conn "listen ert_notification")
+    (pq:query conn "notify ert_notification")
+    (should
+     (equal
+      (car (pq:notifies conn))
+      (vector "ert_notification" mypid "")))
+    (should (equal (pq:notifies conn) nil))
+    (pq:query conn "notify ert_notification, 'paylöad'")
+    (should
+     (equal
+      (car (pq:notifies conn))
+      (vector "ert_notification" mypid "paylöad")))
+    (should-error (pq:notifies 0))
+    (should-error (pq:notifies nil))
+    (should-error (pq:query conn "select pg_terminate_backend($1)" mypid))
+    (should-error (pq:notifies conn))
+))
