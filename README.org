@@ -53,7 +53,7 @@ All other data types are returned as utf-8 strings.
 Strings and the query text itself is converted to utf-8 by the module
 interface.  If this conversion fails, the behavior is undefined by the
 module interface.  If you want to send strings that are not valid
-utf-8 you need to work around this.  For example, I'm using code like
+utf-8, you need to work around this.  For example, I'm using code like
 the following to store raw bytes into a table with a =bytea= column:
 
 :  (pq:query *con*
@@ -63,7 +63,7 @@ the following to store raw bytes into a table with a =bytea= column:
 Any non-string parameter to pq:query is turned into an emacs string
 using =prin1-to-string= first.  This works quite well to store
 arbitrary lisp data and read it back with =read=.  All other aspects
-of prin1-to-string apply too.  For example, when =print-length= or
+of =prin1-to-string= apply too.  For example, when =print-length= or
 =print-level= are set to non-nil, these would be applied as well.
 
 * Notifications
