@@ -7,10 +7,10 @@ full TLS support and new authentication methods like scram-sha-256.
 
 It doesn't expose many libpq features yet, but what's there should be
 crash-safe no matter what you do in the lisp world.  I've been using
-it for two years now for reading mail through my custom Gnus backend
+it for three years now for reading mail through my custom Gnus backend
 without incidents.  If you make it crash, please report.
 
-Basic usage:
+* Basic usage
 : ELISP> (setq *pq* (pq:connectdb "dbname=andreas"))
 : #<user-ptr ptr=0x55b466c02780 finalizer=0x7f7d50112236>
 : ELISP> (pq:query *pq* "select version()")
@@ -29,7 +29,7 @@ Basic usage:
 :  ["font-lock-major-mode" 24]
 :  ["font-lock-mode-major-mode" 24])
 
-
+* Error Handling
 =pq= raises SQL errors as error signal =pq:error=.  This provides the
 [[https://www.postgresql.org/docs/current/errcodes-appendix.html][SQLSTATE]] error code in an additional string in the error data list.
 For example, you can reliably catch unique violations like this:
@@ -42,12 +42,37 @@ For example, you can reliably catch unique violations like this:
 :      ;; re-throw anything else
 :      (signal (car err) (cdr err)))))
 
-See the testsuite [[./test.el]] for more implemented features.
+* Conversion of data types from SQL to Emacs Lisp
+=pq= converts bigints and numerics your queries return to lisp floats
+because they don't fit into a lisp integer.  This looses precision on
+big values.  If you need the full precision, cast them to =text= and
+use, e.g., =calc-eval= to do arbitrary precision things with them.
+All other data types are returned as utf-8 strings.
 
-Note that =pq= silently converts bigints and numerics your queries
-return to lisp floats because they don't fit into a lisp integer.
-This looses precision on big values.  If you need the full precision,
-cast them to =text= and use, e.g., =calc-eval= to do arbitrary
-precision things with them.
+* Conversion of data types from Emacs Lisp to SQL
+Strings and the query text itself is converted to utf-8 by the module
+interface.  If this conversion fails, the behavior is undefined by the
+module interface.  If you want to send strings that are not valid
+utf-8 you need to work around this.  For example, I'm using code like
+the following to store raw bytes into a table with a =bytea= column:
+
+:  (pq:query *con*
+:    "insert into t (blob) values (decode($1, 'base64'))"
+:    (base64-encode-string my-random-bytes))
+
+Any non-string parameter to pq:query is turned into an emacs string
+using =prin1-to-string= first.  This works quite well to store
+arbitrary lisp data and read it back with =read=.  All other aspects
+of prin1-to-string apply too.  For example, when =print-length= or
+=print-level= are set to non-nil, these would be applied as well.
+
+* Notifications
+After a [[https://www.postgresql.org/docs/current/sql-listen.html][=LISTEN=]] statement, PostgreSQL will deliver notifications
+asynchronously over the connection.  Since the emacs-module interface
+does not allow for asynchronous callbacks, you have to check for these
+periodically after a =LISTEN= statement by calling =pq:notifies=.
+Calling it will not cause any traffic on the connection itself.
+
+See the testsuite [[./test.el]] for more implemented features.
 
 [[https://api.travis-ci.org/anse1/emacs-libpq.svg]]
