@@ -452,7 +452,7 @@ emacs_module_init (struct emacs_runtime *ert)
        env->funcall(env, Fdefine_error, 2, args);
   }
 
-  provide(env, "pq");
+  provide(env, "pq-core");
 
   /* loaded successfully */
   return 0;
