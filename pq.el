@@ -3,8 +3,9 @@
 ;; Copyright (C) 2020 by Tom Gillespie
 
 ;; Author: Tom Gillespie
-;; URL: https://github.com/tgbugs/emacs-libpq
+;; URL: https://github.com/anse1/emacs-libpq
 ;; Version: 0.01
+;; Package-Requires: ((emacs "25"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -25,7 +26,7 @@
 
 ;;; Code:
 
-(require 'pq-core)
+(if t (require 'pq-core))
 
 (provide 'pq)
 
