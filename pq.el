@@ -1,6 +1,6 @@
 ;;; pq.el --- libpq binding
 
-;; Copyright (C) 2020 by Tom Gillespie
+;; Copyright (C) 2020-2022  Free Software Foundation, Inc.
 
 ;; Author: Tom Gillespie
 ;; URL: https://github.com/anse1/emacs-libpq
