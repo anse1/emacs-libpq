@@ -3,6 +3,8 @@
  * pg_type.h
  *	  Hard-wired knowledge about some standard type OIDs.
  *
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
  * XXX keep this in sync with src/include/catalog/pg_type.h
  *
  * Portions Copyright (c) 1996-2016, PostgreSQL Global Development Group
