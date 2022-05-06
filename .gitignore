@@ -1,4 +1,7 @@
 *.so
 #*#
 
+*.elc
+/pq-autoloads.el
+/pq-pkg.el
 
