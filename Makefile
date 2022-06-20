@@ -29,4 +29,4 @@ clean:
 	$(RM) $(TARGET)
 
 check: $(TARGET)
-	$(EMACS) --batch -Q -l ert -l test.el -f ert-run-tests-batch-and-exit
+	$(EMACS) --batch -Q -l ert -l pq-test.el -f ert-run-tests-batch-and-exit

@@ -1,8 +1,8 @@
-;;; pq.el --- libpq binding
+;;; pq.el --- libpq binding  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2020-2022  Free Software Foundation, Inc.
 
-;; Author: Tom Gillespie
+;; Author: Tom Gillespie <tgbugs@gmail.com>
 ;; URL: https://github.com/anse1/emacs-libpq
 ;; Version: 0.01
 ;; Package-Requires: ((emacs "25"))
@@ -26,7 +26,25 @@
 
 ;;; Code:
 
-(if t (require 'pq-core))
+(require 'pq-core nil t) ; Don't signal an error if the module is absent.
+
+;; Try and compile the `pq-core' module when we compile the PQ package.
+(eval-when-compile
+  (unless (or (featurep 'pq-core)
+              ;; Try and avoid running this code when we're just
+              ;; loading the uncompiled `pq.el'.
+              (and (fboundp 'macroexp-compiling-p) ;Emacs≥28
+                   (not (macroexp-compiling-p))))
+    (require 'pq-compile)
+    (declare-function pq--compile-module "pq-compile" ())
+    (ignore-errors (pq--compile-module))))
+
+;; Try and compile the `pq-core' module when the PQ package is loaded.
+(unless (featurep 'pq-core)
+  (require 'pq-compile)
+  (declare-function pq--compile-maybe "pq-compile" ())
+  (pq--compile-maybe))
+
 
 (provide 'pq)
 
