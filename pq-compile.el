@@ -37,21 +37,28 @@
       (if (zerop exitcode)
           (message "Compilation of `pq-core' succeeded")
         (let ((out (buffer-string)))
-          (with-current-buffer (get-buffer-create "*pq-compile*")
-            (setq default-directory pq--compile-directory)
-            (let ((inhibit-read-only t))
-              (erase-buffer)
-              (insert out))
-            (compilation-mode)
-            (pop-to-buffer (current-buffer))
-            (error "Compilation of `pq-core' failed")))))))
+          (if noninteractive
+              (message "Compilation of `pq-core' failed:\n%s" out)
+            (with-current-buffer (get-buffer-create "*pq-compile*")
+              (setq default-directory pq--compile-directory)
+              (let ((inhibit-read-only t))
+                (erase-buffer)
+                (insert out))
+              (compilation-mode)
+              (pop-to-buffer (current-buffer))
+              (error "Compilation of `pq-core' failed"))))))))
 
 (defun pq--compile-maybe ()
-  ;; FIXME: Should we first try it silently (i.e. without prompting the user)?
-  (if (not (y-or-n-p "PQ needs to compile the `pq-core' module.  Do it now?"))
-      (message "Continuing without `pq-core'; some operations may fail")
+  (cond
+   (noninteractive ;; Batch use: try to compile but delay errors when possible.
+    (ignore-errors (pq--compile-module))
+    (require 'pq-core nil t))
+   ;; FIXME: Should we first try it silently (i.e. without prompting the user)?
+   ((not (y-or-n-p "PQ needs to compile the `pq-core' module.  Do it now?"))
+    (message "Continuing without `pq-core'; some operations may fail"))
+   (t
     (pq--compile-module)
-    (require 'pq-core)))
+    (require 'pq-core))))
 
 
 (provide 'pq-compile)
