@@ -4,7 +4,7 @@
 
 ;; Author: Tom Gillespie <tgbugs@gmail.com>
 ;; URL: https://github.com/anse1/emacs-libpq
-;; Version: 0.01
+;; Version: 0.02
 ;; Package-Requires: ((emacs "25"))
 
 ;; This program is free software; you can redistribute it and/or modify
